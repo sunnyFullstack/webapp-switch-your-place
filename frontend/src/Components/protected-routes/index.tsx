@@ -1,25 +1,22 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// import { useAppSelector } from 'src/redux-toolkit/hooks';
+import useAuthStatus from "../../hooks/useAuthStatus";
 
 interface ProtectedRouteProps {
   element: JSX.Element;
 }
 
 const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
-  //   const store = useAppSelector((state) => state.authReducer);
   const navigate = useNavigate();
-  let store = {
-    isAuthenticated: false,
-  };
+  const { isLoggedIn, user } = useAuthStatus();
 
   useEffect(() => {
-    if (!store.isAuthenticated) {
+    if (!isLoggedIn) {
       navigate("/signin");
     }
-  }, [store.isAuthenticated]);
+  }, [isLoggedIn]);
 
-  return store.isAuthenticated && element;
+  return isLoggedIn && element;
 };
 
 export default ProtectedRoute;

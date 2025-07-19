@@ -2,15 +2,20 @@ const User = require("../modal/User");
 const generateUsername = require("../utils/generateUserName");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const ApiError = require("../utils/ApiError");
-const logger = require("../utils/logger");
 const { MESSAGES } = require("../utils/constants");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { firstname, lastname, mobile, email, password, confirmPassword } =
-      req.body;
-    console.log(req.body, "+++");
+    const {
+      firstname,
+      lastname,
+      mobile,
+      email,
+      password,
+      confirmPassword,
+      state,
+      district,
+    } = req.body;
     const existingUser = await User.findOne({ $or: [{ email }, { mobile }] });
     const username = await generateUsername(firstname, lastname, mobile);
     if (existingUser) {
@@ -25,6 +30,10 @@ exports.registerUser = async (req, res) => {
       password,
       confirmPassword,
       username,
+      work_location_state: state,
+      work_location_district: district,
+      desired_transfer_state: "",
+      desired_transfer_district: "",
     });
 
     res.status(201).json({
@@ -36,7 +45,7 @@ exports.registerUser = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-exports.loginUser = async (req, res) => {
+exports.loginUser = async (req, res, next) => {
   const { username, password } = req.body;
   const userAgent = req.headers["user-agent"];
   const ip = req.ip;
@@ -44,8 +53,10 @@ exports.loginUser = async (req, res) => {
   try {
     // 1. Find user by username
     const user = await User.findOne({ username }).select("+password");
+
     if (!user) {
       return res.status(400).json({ error: MESSAGES.INVALID_CREDENTIALS });
+      next();
     }
 
     // 2. Compare password with hashed password in DB
@@ -92,5 +103,21 @@ exports.loginUser = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.logout = async (req, res, next) => {
+  res.clearCookie("token", { httpOnly: true, secure: true });
+  return res.status(200).json({ message: "Logged out successfully" });
+};
+exports.profilecheck = async (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ user: decoded }); // send some basic info
+  } catch (err) {
+    res.sendStatus(401);
   }
 };

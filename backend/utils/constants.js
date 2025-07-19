@@ -5,6 +5,9 @@ module.exports = {
     INVALID_CREDENTIALS: "Invalid username or password",
     SERVER_ERROR: "Something went wrong",
     USER_EXIST: "Username or Email already exists",
+    SERVER_RUNNING: "Server is running on the port number",
+    MONGODD_CONNECT: "MongoDB connected successfully",
+    MONGO_FAILLED: "MongoDB connection error:",
   },
   ROLES: {
     ADMIN: "admin",

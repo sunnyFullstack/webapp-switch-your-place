@@ -21,6 +21,7 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const logger = require("../utils/logger");
+const { MESSAGES } = require("../utils/constants");
 
 dotenv.config();
 
@@ -35,9 +36,9 @@ const mongodb_uri = MONGO_URI.replace("<username>", db_username).replace(
 const connectDB = async () => {
   try {
     await mongoose.connect(mongodb_uri, { autoIndex: false });
-    logger.info("✅ MongoDB connected successfully ");
+    logger.info(`✅ ${MESSAGES.MONGODD_CONNECT} `);
   } catch (error) {
-    logger.error("❌ MongoDB connection error:", error);
+    logger.error(`❌ ${MESSAGES.MONGO_FAILLED}`, error);
     process.exit(1); // Exit process with failure
   }
 };

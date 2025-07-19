@@ -1,9 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Container from "../../Components/Container";
 import Button from "../../Components/Button";
+import { useLoginMutation } from "../../services/auth.api";
+import Input from "../../Components/Input/Input";
+import { Link, useNavigate } from "react-router-dom";
+import Toast from "../../Components/Toast/Toast";
+import FullScreenLoader from "../../Components/Loader/Loader";
+import logoImg from "../../assets/images/logo.jpg";
+import Logo from "../../Components/Logo";
 
 const SignInPage = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
+  const [showToast, setShowToast] = useState(false);
+  const [login, { data, isLoading, isSuccess, error, status, isError }] =
+    useLoginMutation();
+  const [isButtonDiasbled, setIsButtonDisabled] = useState(false);
+  let navigate = useNavigate();
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => setShowToast(false), 3000); // auto hide after 3s
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -11,54 +30,64 @@ const SignInPage = () => {
       [e.target.name]: e.target.value,
     }));
   };
+  useEffect(() => {
+    if (data?.userId) {
+      setShowToast(true);
+      const timer = setTimeout(() => navigate("/home"), 4000);
+      return () => clearTimeout(timer);
+    }
+    if (error?.data?.error) {
+      setIsButtonDisabled(false);
+    }
+  }, [data, error]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    setIsButtonDisabled(true);
     e.preventDefault();
-    console.log("Login Submitted", formData);
-    // Add login API call here
+    await login(formData);
   };
+
   return (
     <Container className="flex justify-center items-center h-screen">
+      {isLoading && <FullScreenLoader />}
+      {showToast && <Toast message="Registered successfully!" type="success" />}
       <div className="h-fit xl:w-[500px] lg:w-1/2 md:w-5/6 sm:w-full xs:w-full shadow-custom rounded-xl p-8 bg-gray-100">
         <div>
           <div className="flex justify-center mb-6">
-            <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
+            <Logo src={logoImg} size={150} />
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <Button variant="primary" className="bg-green">
-              Submit
+            <Input
+              label="Username"
+              type="text"
+              value={formData.username}
+              onChange={handleChange}
+              name="username"
+            />
+            <Input
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              name="password"
+            />
+            <Button
+              disabled={isButtonDiasbled}
+              variant="primary"
+              className={`${
+                isButtonDiasbled ? "bg-grey " : "bg-green"
+              } w-[100%] text-primary text-xs`}
+            >
+              SUBMIT
             </Button>
+            <div>
+              <p className="font-bold">
+                New User{" "}
+                <Link className="text-blue underline" to="/register">
+                  Register here
+                </Link>
+              </p>
+            </div>
           </form>
         </div>
       </div>

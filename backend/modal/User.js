@@ -41,6 +41,24 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, "Invalid email address"],
     },
+    work_location_state: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    work_location_district: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    desired_transfer_state: {
+      type: String,
+      trim: true,
+    },
+    desired_transfer_district: {
+      type: String,
+      trim: true,
+    },
     password: {
       type: String,
       required: true,
